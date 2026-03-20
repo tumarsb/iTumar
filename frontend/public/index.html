@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <meta name="theme-color" content="#1a2744"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="TUMAR"/>
+  <meta name="description" content="TUMAR 智能诊所管理系统"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <link rel="apple-touch-icon" href="/tumar_logo.png"/>
+  <title>TUMAR 诊所管理系统</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 2px; }
+
+    /* PWA install banner */
+    #pwa-banner {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a2744;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      z-index: 9999;
+      gap: 12px;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      max-width: 320px;
+      width: 90%;
+    }
+    #pwa-banner.show { display: flex; }
+    #pwa-install-btn {
+      background: #7eb8f7;
+      color: #1a2744;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    #pwa-close { background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 18px; padding: 0 2px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- PWA Install Banner -->
+  <div id="pwa-banner">
+    <div style="flex:1">
+      <div style="font-weight:500;margin-bottom:2px">安装 TUMAR 到手机</div>
+      <div style="font-size:11px;opacity:0.7">像 App 一样使用，无需应用商店</div>
+    </div>
+    <button id="pwa-install-btn">安装</button>
+    <button id="pwa-close">×</button>
+  </div>
+
+  <script>
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+
+    // PWA Install prompt
+    let deferredPrompt;
+    const banner = document.getElementById('pwa-banner');
+    const installBtn = document.getElementById('pwa-install-btn');
+    const closeBtn = document.getElementById('pwa-close');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Show banner after 3 seconds
+      setTimeout(() => banner.classList.add('show'), 3000);
+    });
+
+    installBtn.addEventListener('click', async () => {
+      banner.classList.remove('show');
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      }
+    });
+
+    closeBtn.addEventListener('click', () => {
+      banner.classList.remove('show');
+      localStorage.setItem('pwa-banner-dismissed', '1');
+    });
+
+    // Don't show if already dismissed
+    if (localStorage.getItem('pwa-banner-dismissed')) {
+      banner.style.display = 'none';
+    }
+
+    // iOS Safari install hint
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isInStandalone = window.navigator.standalone;
+    if (isIOS && !isInStandalone && !localStorage.getItem('ios-hint-shown')) {
+      setTimeout(() => {
+        const hint = document.createElement('div');
+        hint.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a2744;color:#fff;padding:12px 18px;border-radius:12px;font-size:12px;z-index:9999;text-align:center;max-width:280px;width:90%;line-height:1.6';
+        hint.innerHTML = '点击底部 <strong style="color:#7eb8f7">分享</strong> 按钮，<br>选择「<strong style="color:#7eb8f7">添加到主屏幕</strong>」即可安装<br><button onclick="this.parentElement.remove();localStorage.setItem(\'ios-hint-shown\',\'1\')" style="margin-top:8px;background:#7eb8f7;color:#1a2744;border:none;padding:5px 16px;border-radius:6px;font-size:12px;cursor:pointer">知道了</button>';
+        document.body.appendChild(hint);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
