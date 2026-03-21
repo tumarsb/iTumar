@@ -634,3 +634,14 @@ app.get('/api/payments/stats', auth, async (req, res) => {
 
 const PORT=process.env.PORT||3001;
 initDB().then(()=>{app.listen(PORT,()=>console.log(`✅ 诊所服务器已启动 → http://localhost:${PORT}`));}).catch(e=>{console.error('❌ 启动失败:',e);process.exit(1);});
+
+// Serve Frontend
+import { createRequire } from 'module';
+const __require = createRequire(import.meta.url);
+const _publicDir = path.join(__dirname, 'public');
+if (fs.existsSync(_publicDir)) {
+  app.use(express.static(_publicDir));
+  app.get('*', (_req, _res) => {
+    _res.sendFile(path.join(_publicDir, 'index.html'));
+  });
+}
