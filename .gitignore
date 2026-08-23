@@ -10,3 +10,5 @@ backend/.env
 frontend/build/
 backend/.env
 backend/.env.save
+backend/.env
+backend/.env.save
