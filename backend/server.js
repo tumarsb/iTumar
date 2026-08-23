@@ -173,7 +173,7 @@ app.post('/api/ai/organize',auth,doctorOnly,async(req,res)=>{
     const Anthropic=(await import('@anthropic-ai/sdk')).default;
     const client=new Anthropic({apiKey});
     const prompt=`你是一名专业的医疗记录整理助手。请将以下医患对话内容整理成标准病历格式。\n\n病人信息：${patient?.name||''}，${patient?.age||''}岁，${patient?.gender||''}\n已知过敏史：${(patient?.allergies||[]).join('、')||'无'}\n既往病史：${(patient?.medical_history||[]).join('、')||'无'}\n\n对话内容：\n${transcript}\n\n请用中文输出，严格按照以下JSON格式返回，不要有其他内容：\n{"chief_complaint":"主诉","history":"现病史","examination":"体格检查（没有则返回空字符串）","diagnosis":"初步诊断","treatment":"处理方案"}`;
-    const message=await client.messages.create({model:'claude-sonnet-4-20250514',max_tokens:1024,messages:[{role:'user',content:prompt}]});
+    const message=await client.messages.create({model:'claude-sonnet-4-5',max_tokens:1024,messages:[{role:'user',content:prompt}]});
     const clean=message.content[0].text.trim().replace(/```json|```/g,'').trim();
     res.json(JSON.parse(clean));
   }catch(e){res.status(500).json({error:e.message});}
@@ -476,7 +476,7 @@ app.post('/api/attachments/:id/analyze', auth, doctorOnly, async (req, res) => {
 请用简洁专业的语言，方便医生快速了解关键信息。`;
 
     const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5',
       max_tokens: 1500,
       messages: [{
         role: 'user',
